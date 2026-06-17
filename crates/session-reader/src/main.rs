@@ -37,8 +37,8 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     List {
-        #[arg(long, default_value = "regress")]
-        search: String,
+        #[arg(long)]
+        search: Option<String>,
         #[arg(long, default_value_t = 20)]
         limit: i64,
     },
@@ -51,6 +51,11 @@ enum Commands {
         agent: String,
         #[arg(long, help = "Blocker reason")]
         reason: String,
+    },
+    Rename {
+        session_id: String,
+        #[arg(long)]
+        title: String,
     },
     #[command(name = "list-flagged")]
     ListFlagged {
@@ -108,9 +113,10 @@ fn run() -> Result<()> {
     }
 
     match cli.cmd {
-        Some(Commands::List { search, limit }) => list_sessions(&search, limit),
+        Some(Commands::List { search, limit }) => list_sessions(search.as_deref(), limit),
         Some(Commands::Transcript { session_id }) => get_transcript(&session_id),
         Some(Commands::FlagCurrent { agent, reason }) => flag_current(&agent, &reason),
+        Some(Commands::Rename { session_id, title }) => rename_session(&session_id, &title),
         Some(Commands::ListFlagged { pending_only, resolved_only }) => {
             list_flagged(pending_only, resolved_only)
         }
@@ -208,22 +214,64 @@ fn ensure_flagged_table(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn list_sessions(search: &str, limit: i64) -> Result<()> {
+fn list_sessions(search: Option<&str>, limit: i64) -> Result<()> {
     let db = get_db()?;
-    let mut stmt = db.prepare(
-        "SELECT CAST(id AS TEXT), title, time_created, time_updated\n         FROM session\n         WHERE title LIKE ? OR title LIKE ?\n         ORDER BY time_created DESC\n         LIMIT ?",
-    )?;
-    let rows = stmt
-        .query_map(params![format!("%{}%", search), format!("%{}%", search), limit], |row| {
-            Ok(SessionRow {
-                id: row.get(0)?,
-                title: row.get(1)?,
-                created: row.get(2)?,
-                updated: row.get(3)?,
-            })
-        })?
-        .collect::<rusqlite::Result<Vec<_>>>()?;
+    let rows = match search {
+        Some(term) => {
+            let mut stmt = db.prepare(
+                "SELECT CAST(id AS TEXT), title, time_created, time_updated\n         FROM session\n         WHERE title LIKE ?\n         ORDER BY time_created DESC\n         LIMIT ?",
+            )?;
+            stmt
+                .query_map(params![format!("%{}%", term), limit], |row| {
+                    Ok(SessionRow {
+                        id: row.get(0)?,
+                        title: row.get(1)?,
+                        created: row.get(2)?,
+                        updated: row.get(3)?,
+                    })
+                })?
+                .collect::<rusqlite::Result<Vec<_>>>()?
+        }
+        None => {
+            let mut stmt = db.prepare(
+                "SELECT CAST(id AS TEXT), title, time_created, time_updated\n         FROM session\n         ORDER BY time_created DESC\n         LIMIT ?",
+            )?;
+            stmt
+                .query_map(params![limit], |row| {
+                    Ok(SessionRow {
+                        id: row.get(0)?,
+                        title: row.get(1)?,
+                        created: row.get(2)?,
+                        updated: row.get(3)?,
+                    })
+                })?
+                .collect::<rusqlite::Result<Vec<_>>>()?
+        }
+    };
     println!("{}", serde_json::to_string_pretty(&rows)?);
+    Ok(())
+}
+
+fn rename_session(session_id: &str, title: &str) -> Result<()> {
+    let db = get_db()?;
+    let updated = db.execute(
+        "UPDATE session SET title = ? WHERE CAST(id AS TEXT) = ?",
+        params![title, session_id],
+    )?;
+
+    if updated == 0 {
+        println!("{}", json!({"error": format!("No session found with id '{}'", session_id)}));
+        std::process::exit(1);
+    }
+
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&json!({
+            "status": "renamed",
+            "session_id": session_id,
+            "title": title,
+        }))?
+    );
     Ok(())
 }
 
