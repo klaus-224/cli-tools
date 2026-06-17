@@ -221,7 +221,7 @@ fn list_sessions(search: Option<&str>, limit: i64) -> Result<()> {
             let mut stmt = db.prepare(
                 "SELECT CAST(id AS TEXT), title, time_created, time_updated\n         FROM session\n         WHERE title LIKE ?\n         ORDER BY time_created DESC\n         LIMIT ?",
             )?;
-            stmt
+            let rows = stmt
                 .query_map(params![format!("%{}%", term), limit], |row| {
                     Ok(SessionRow {
                         id: row.get(0)?,
@@ -230,13 +230,14 @@ fn list_sessions(search: Option<&str>, limit: i64) -> Result<()> {
                         updated: row.get(3)?,
                     })
                 })?
-                .collect::<rusqlite::Result<Vec<_>>>()?
+                .collect::<rusqlite::Result<Vec<_>>>()?;
+            rows
         }
         None => {
             let mut stmt = db.prepare(
                 "SELECT CAST(id AS TEXT), title, time_created, time_updated\n         FROM session\n         ORDER BY time_created DESC\n         LIMIT ?",
             )?;
-            stmt
+            let rows = stmt
                 .query_map(params![limit], |row| {
                     Ok(SessionRow {
                         id: row.get(0)?,
@@ -245,7 +246,8 @@ fn list_sessions(search: Option<&str>, limit: i64) -> Result<()> {
                         updated: row.get(3)?,
                     })
                 })?
-                .collect::<rusqlite::Result<Vec<_>>>()?
+                .collect::<rusqlite::Result<Vec<_>>>()?;
+            rows
         }
     };
     println!("{}", serde_json::to_string_pretty(&rows)?);
