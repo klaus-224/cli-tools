@@ -17,12 +17,13 @@ Release binaries are written to:
 target/release/<command-name>
 ```
 
-## Install
+## Installation
 
 Install `agent_memory` into Cargo's binary directory:
 
 ```bash
 make install-agent-memory
+make install-
 ```
 
 That runs:
