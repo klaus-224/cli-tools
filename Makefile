@@ -1,4 +1,4 @@
-.PHONY: build test smoke-agent-memory install-agent-memory smoke-project-index install-project-index
+.PHONY: build test smoke-agent-memory install-agent-memory smoke-project-index install-project-index smoke-session-reader install-session-reader
 
 build:
 	cargo build --release
@@ -25,3 +25,9 @@ smoke-project-index: build
 
 install-project-index:
 	cargo install --path crates/project-index
+
+smoke-session-reader: build
+	target/release/session_reader --help
+
+install-session-reader:
+	cargo install --path crates/session-reader

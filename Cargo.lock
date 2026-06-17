@@ -506,6 +506,14 @@ dependencies = [
 [[package]]
 name = "session-reader"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "rusqlite",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "shlex"
