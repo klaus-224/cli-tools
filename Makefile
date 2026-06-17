@@ -1,4 +1,4 @@
-.PHONY: build test smoke-agent-memory install-agent-memory
+.PHONY: build test smoke-agent-memory install-agent-memory smoke-project-index install-project-index
 
 build:
 	cargo build --release
@@ -16,3 +16,12 @@ smoke-agent-memory: build
 
 install-agent-memory:
 	cargo install --path crates/agent-memory
+
+smoke-project-index: build
+	set -eu; \
+	db="$${TMPDIR:-/tmp}/project-index-smoke-$$$$.db"; \
+	PROJECT_INDEX_DB="$$db" target/release/project_index index; \
+	PROJECT_INDEX_DB="$$db" target/release/project_index query "SELECT COUNT(*) FROM repositories"
+
+install-project-index:
+	cargo install --path crates/project-index
