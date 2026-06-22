@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { AppNav, type AppView } from './components/AppNav'
+import { TopAppBar, type AppView } from './components/AppNav'
 import { IndexView } from './views/IndexView'
 import { MemoryView } from './views/MemoryView'
 import { SessionsView } from './views/SessionsView'
-import './App.css'
 
 function App() {
   const [view, setView] = useState<AppView>(() => {
@@ -16,19 +15,13 @@ function App() {
   }, [view])
 
   return (
-    <div className="app-frame">
-      <header className="app-frame__header">
-        <div>
-          <div className="eyebrow">Session Reviewer</div>
-          <h1>Agent data browser</h1>
-          <p className="muted">Sessions, agent memory, and project index in one place.</p>
-        </div>
-        <AppNav active={view} onChange={setView} />
-      </header>
-
-      {view === 'sessions' && <SessionsView />}
-      {view === 'memory' && <MemoryView />}
-      {view === 'index' && <IndexView />}
+    <div className="h-screen flex flex-col overflow-hidden bg-background text-on-surface">
+      <TopAppBar active={view} onChange={setView} />
+      <main className="flex-1 overflow-hidden">
+        {view === 'sessions' && <SessionsView />}
+        {view === 'memory' && <MemoryView />}
+        {view === 'index' && <IndexView />}
+      </main>
     </div>
   )
 }

@@ -10,12 +10,23 @@ type Props = {
 }
 
 export const SessionList = ({ sessions, activeSessionId, loading, error, onSelect }: Props) => (
-  <div className="session-list">
-    {loading && <div className="empty-state">Loading sessions…</div>}
-    {!loading && error && <div className="error-state">{error}</div>}
-    {!loading && !error && sessions.length === 0 && <div className="empty-state">No sessions found.</div>}
+  <div className="divide-y divide-outline-variant/30">
+    {loading && (
+      <div className="p-4 text-center text-sm text-outline">Loading sessions...</div>
+    )}
+    {!loading && error && (
+      <div className="p-4 text-center text-sm text-error">{error}</div>
+    )}
+    {!loading && !error && sessions.length === 0 && (
+      <div className="p-4 text-center text-sm text-outline">No sessions found.</div>
+    )}
     {!loading && !error && sessions.map((session) => (
-      <SessionRow key={session.id} session={session} active={session.id === activeSessionId} onSelect={onSelect} />
+      <SessionRow
+        key={session.id}
+        session={session}
+        active={session.id === activeSessionId}
+        onSelect={onSelect}
+      />
     ))}
   </div>
 )
