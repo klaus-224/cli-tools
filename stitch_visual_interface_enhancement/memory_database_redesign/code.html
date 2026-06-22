@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Memory Database | Agent Data Browser</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Geist:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(70, 69, 84, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b1326;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #464554;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#003f38",
+                        "on-error-container": "#ffdad6",
+                        "tertiary": "#ffb95f",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "surface-tint": "#c0c1ff",
+                        "inverse-primary": "#494bd6",
+                        "on-background": "#dae2fd",
+                        "surface-container-low": "#131b2e",
+                        "primary": "#c0c1ff",
+                        "surface-container-highest": "#2d3449",
+                        "primary-container": "#8083ff",
+                        "inverse-surface": "#dae2fd",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-dim": "#0b1326",
+                        "on-primary": "#1000a9",
+                        "surface-container-high": "#222a3d",
+                        "on-secondary": "#003731",
+                        "outline": "#908fa0",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-error": "#690005",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "secondary-container": "#04b4a2",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-tertiary-fixed": "#2a1700",
+                        "inverse-on-surface": "#283044",
+                        "outline-variant": "#464554",
+                        "background": "#0b1326",
+                        "on-tertiary": "#472a00",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-surface": "#dae2fd",
+                        "on-primary-fixed": "#07006c",
+                        "surface": "#0b1326",
+                        "surface-bright": "#31394d",
+                        "surface-container-lowest": "#060e20",
+                        "primary-fixed": "#e1e0ff",
+                        "on-secondary-fixed": "#00201c",
+                        "on-primary-container": "#0d0096",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#ca8100",
+                        "surface-container": "#171f33",
+                        "on-tertiary-container": "#3e2400",
+                        "on-surface-variant": "#c7c4d7",
+                        "secondary": "#4fdbc8",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed": "#71f8e4",
+                        "error": "#ffb4ab"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "code-sm": ["JetBrains Mono"],
+                        "label-caps": ["Geist"],
+                        "headline-md": ["Inter"],
+                        "code-xs": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "code-sm": ["13px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "code-xs": ["11px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-surface-dim dark:bg-surface-dim border-b border-outline-variant dark:border-outline-variant flex justify-between items-center w-full px-margin-desktop h-16 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">Agent Data Browser</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-primary dark:hover:text-primary transition-colors duration-200 cursor-pointer active:opacity-80" href="#">Sessions</a>
+<a class="text-primary dark:text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer active:opacity-80" href="#">Memory</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-primary dark:hover:text-primary transition-colors duration-200 cursor-pointer active:opacity-80" href="#">Index</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg font-label-caps text-label-caps transition-all active:scale-95">
+                Deploy Agent
+            </button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer p-2">settings</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer p-2">help</span>
+</div>
+<img class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="Close up portrait of a professional software engineer with a neutral expression, clean lighting, and a tech-focused workspace background with blue accents. Minimalist and high-quality photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAofnwkRDuMPGiL7FsBUv0GB2RVR5X4XaVuNypOUP-Cgm2V0vy1kygV6PKdcNPA-myRA_ZV9jR-igBUB8Rs6iFGloZKWoVRcNniM5eJns2aw02AlhVCW4ZQq8JWDcsTxhgwma2AAksMuvxl0x3DKWve9J-jfnrytUIu_RY7xUx30Xgx4N2tXbdfSYCPB0fU2zjeSNIw8cIaVKxAq1i5P7uVgsQLWhXDZagLwWkd7YA1PQrCoJ8gf1aVHvO87wHzwfqpUW0Bx7BR"/>
+</div>
+</header>
+<div class="flex pt-16 h-screen overflow-hidden">
+<!-- SideNavBar (Visible on large screens) -->
+<aside class="hidden lg:flex flex-col bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant h-full w-64 p-4 shrink-0">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3 mb-1">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">developer_board</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">Core-01</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Active Session</span>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-on-surface-variant dark:text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps uppercase">Overview</span>
+</a>
+<a class="bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-on-primary-container rounded-lg px-3 py-2 flex items-center gap-2" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="font-label-caps text-label-caps uppercase">Memory Store</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="font-label-caps text-label-caps uppercase">Files</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">filter_alt</span>
+<span class="font-label-caps text-label-caps uppercase">Filters</span>
+</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-caps text-label-caps uppercase">History</span>
+</a>
+</nav>
+<button class="mt-4 w-full border border-outline px-3 py-2 rounded-lg font-label-caps text-label-caps hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">sync</span>
+                Sync Repository
+            </button>
+<div class="mt-auto border-t border-outline-variant pt-4 space-y-1">
+<a class="text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-label-caps text-label-caps uppercase">Logs</span>
+</a>
+<a class="text-on-surface-variant px-3 py-2 flex items-center gap-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">code</span>
+<span class="font-label-caps text-label-caps uppercase">Terminal</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto custom-scrollbar bg-surface-dim">
+<div class="max-w-[1200px] mx-auto p-margin-desktop space-y-gutter">
+<!-- Header & Search -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-outline-variant">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">Memory Database</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl">Persistent storage for agent heuristics, interaction logs, and learned behavioral patterns extracted from the Core-01 session.</p>
+</div>
+<div class="flex flex-col gap-3 min-w-[320px]">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-md">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Search insights..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+<button class="bg-primary text-on-primary px-4 py-1 rounded-full font-label-caps text-label-caps whitespace-nowrap">All Items</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">Debugging</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">Workflows</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">Reviews</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest px-4 py-1 rounded-full font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">Edge Cases</button>
+<div class="ml-auto flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-outline">Sort by:</span>
+<select class="bg-transparent border-none text-label-caps font-label-caps text-primary focus:ring-0 p-0 cursor-pointer">
+<option>Latest First</option>
+<option>Highest Confidence</option>
+</select>
+</div>
+</div>
+<!-- Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Insight Card 1 -->
+<div class="glass-panel rounded-xl p-6 hover:border-primary/50 transition-all group flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps bg-secondary-container/20 text-secondary border border-secondary/30 px-2 py-0.5 rounded">DEBUGGING</span>
+<span class="font-code-xs text-code-xs text-outline">0x4F92...22</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2 group-hover:text-primary transition-colors">Recursive Pathing Logic Fail</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-3">The agent was trapped in a 3nd-level directory crawl. Root cause: symlinks pointing back to root within the /tmp/node_modules structure. Added circular reference check to the path-walker hook.</p>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-body-sm">schedule</span>
+<span class="font-code-sm text-code-sm text-outline">2m ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-code-sm text-secondary">98% Confidence</span>
+</div>
+</div>
+</div>
+<!-- Insight Card 2 -->
+<div class="glass-panel rounded-xl p-6 hover:border-primary/50 transition-all group flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps bg-tertiary-container/20 text-tertiary border border-tertiary/30 px-2 py-0.5 rounded">WORKFLOW</span>
+<span class="font-code-xs text-code-xs text-outline">0xA31B...99</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2 group-hover:text-primary transition-colors">Optimal API Throttling Strategy</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-3">Observed exponential backoff efficiency during peak load. Learned that 1.5s jitter is optimal for the current gateway configuration. Automating this in future session headers.</p>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-body-sm">schedule</span>
+<span class="font-code-sm text-code-sm text-outline">14m ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-code-sm text-tertiary">84% Confidence</span>
+</div>
+</div>
+</div>
+<!-- Visual Context Card -->
+<div class="md:col-span-2 relative overflow-hidden rounded-xl h-64 border border-outline-variant group">
+<img alt="Database Visualization" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFAIDxtDmHMWnYH1dviMyzQgf81_nLYFDZbqw99vOYV_Ls2_cw6-tHrGemp3OUz2qEVkhwJ5sPooJxSDhPhOrinwtaqnuERXG-L3aARyw-HI8kg1jq79P8W_C6BBjTCgib6H068lGEkn-ZGlbxOHM6I5YXeB6B5b6Iu1OuWtKIoIhG51zTiiRjV1qph7F6RlhyeTw9tlsJ0GemXZVLWWqDL8vaCXnw0Lr1z9KPkOCRo_IfJnVgMjCvgRgtl9mqOPhfMfB4jZhX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-surface-dim/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<h2 class="font-headline-lg text-headline-lg text-white mb-2">Memory Latency Stats</h2>
+<div class="flex gap-4">
+<div class="bg-surface-container-high/80 backdrop-blur-md px-4 py-2 rounded border border-outline-variant">
+<p class="font-label-caps text-label-caps text-outline">R/W SPEED</p>
+<p class="font-code-sm text-code-sm text-primary">1.2ms / 0.4ms</p>
+</div>
+<div class="bg-surface-container-high/80 backdrop-blur-md px-4 py-2 rounded border border-outline-variant">
+<p class="font-label-caps text-label-caps text-outline">TOTAL ENTRIES</p>
+<p class="font-code-sm text-code-sm text-secondary">4,812 KB</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Insight Card 3 -->
+<div class="glass-panel rounded-xl p-6 hover:border-primary/50 transition-all group flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps bg-primary-container/20 text-primary border border-primary/30 px-2 py-0.5 rounded">REVIEW</span>
+<span class="font-code-xs text-code-xs text-outline">0x88C2...11</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2 group-hover:text-primary transition-colors">Legacy Auth Protocol Detected</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-3">Detected SHA-1 usage in local vault store. Marked as 'Critical Risk'. Recommended migration to Argon2id immediately. Insight triggered by automated security scanner plugin.</p>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-body-sm">schedule</span>
+<span class="font-code-sm text-code-sm text-outline">1h ago</span>
+</div>
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span class="font-code-sm text-code-sm">Critical</span>
+</div>
+</div>
+</div>
+<!-- Insight Card 4 -->
+<div class="glass-panel rounded-xl p-6 hover:border-primary/50 transition-all group flex flex-col h-full">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps bg-secondary-container/20 text-secondary border border-secondary/30 px-2 py-0.5 rounded">EDGE CASE</span>
+<span class="font-code-xs text-code-xs text-outline">0xE041...05</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2 group-hover:text-primary transition-colors">Unicode Normalization Gap</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-3">Inconsistent behavior when processing NFC vs NFD strings in user profile names. Agent now automatically normalizes to NFC before DB write.</p>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-body-sm">schedule</span>
+<span class="font-code-sm text-code-sm text-outline">3h ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-code-sm text-code-sm text-secondary">92% Confidence</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Status -->
+<div class="mt-12 flex justify-between items-center bg-surface-container-lowest p-4 rounded-lg border border-outline-variant">
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline">Sync Status</span>
+<span class="font-code-sm text-code-sm text-secondary">All Nodes Synced</span>
+</div>
+<div class="flex flex-col border-l border-outline-variant pl-6">
+<span class="font-label-caps text-label-caps text-outline">Storage Used</span>
+<span class="font-code-sm text-code-sm text-on-surface">14.2 / 50 GB</span>
+</div>
+</div>
+<button class="flex items-center gap-2 text-primary font-label-caps text-label-caps hover:underline">
+<span class="material-symbols-outlined text-body-md">download</span>
+                        Export DB (.json)
+                    </button>
+</div>
+</div>
+</main>
+<!-- Right Inspector Panel -->
+<aside class="hidden xl:flex flex-col w-80 bg-surface-container-lowest border-l border-outline-variant p-6 gap-6">
+<h2 class="font-label-caps text-label-caps text-primary tracking-widest border-b border-outline-variant pb-2">LIVE ANALYSIS</h2>
+<div class="space-y-4">
+<div class="bg-surface-dim border border-outline-variant p-4 rounded-lg">
+<p class="font-label-caps text-label-caps text-outline mb-1">CURRENT AGENT</p>
+<p class="font-code-sm text-code-sm text-primary">Core-01-Delta</p>
+</div>
+<div class="space-y-3">
+<p class="font-label-caps text-label-caps text-outline">SESSION HEURISTICS</p>
+<div class="flex justify-between text-code-xs">
+<span class="text-on-surface-variant">Cognitive Load</span>
+<span class="text-secondary">Low (24%)</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 24%;"></div>
+</div>
+<div class="flex justify-between text-code-xs mt-4">
+<span class="text-on-surface-variant">Context Window</span>
+<span class="text-tertiary">92% Utilized</span>
+</div>
+<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width: 92%;"></div>
+</div>
+</div>
+<div class="mt-8">
+<p class="font-label-caps text-label-caps text-outline mb-4">RECENT ENTITY EXTRACTIONS</p>
+<ul class="space-y-2">
+<li class="flex items-center justify-between font-code-xs text-code-xs bg-surface-container-low px-2 py-1.5 rounded">
+<span class="text-on-surface">user_0x992</span>
+<span class="text-outline">Identity</span>
+</li>
+<li class="flex items-center justify-between font-code-xs text-code-xs bg-surface-container-low px-2 py-1.5 rounded">
+<span class="text-on-surface">aws-east-1</span>
+<span class="text-outline">Infrastructure</span>
+</li>
+<li class="flex items-center justify-between font-code-xs text-code-xs bg-surface-container-low px-2 py-1.5 rounded">
+<span class="text-on-surface">v3.2.0-patch</span>
+<span class="text-outline">Version</span>
+</li>
+</ul>
+</div>
+<div class="mt-auto">
+<button class="w-full bg-surface-container-high hover:bg-primary/20 hover:text-primary border border-outline-variant px-4 py-3 rounded-lg font-label-caps text-label-caps transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">history_edu</span>
+                        Generate Session Report
+                    </button>
+</div>
+</div>
+</aside>
+</div>
+<script>
+        // Subtle micro-interactions
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>
