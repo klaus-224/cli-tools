@@ -50,8 +50,12 @@ END;
 #[derive(Parser)]
 #[command(name = "agent_memory", about = "Memory store")]
 struct Cli {
+    /// Show the configured database location and exit
+    #[arg(long, global = true)]
+    info: bool,
+
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -88,6 +92,12 @@ enum Commands {
         plan_id: Option<String>,
         #[arg(long, default_value = "regression-writer")]
         agent: String,
+    },
+    /// Launch the shared session viewer UI
+    Ui {
+        /// Port for the embedded UI server
+        #[arg(long, default_value_t = 5175)]
+        port: u16,
     },
 }
 
@@ -132,23 +142,34 @@ struct MemoryEntry {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    if cli.info {
+        return cmd_info();
+    }
+
     match cli.command {
-        Commands::Init => cmd_init(),
-        Commands::Query {
+        Some(Commands::Init) => cmd_init(),
+        Some(Commands::Query {
             category,
             tags,
             search,
             recent,
             limit,
-        } => cmd_query(category, tags, search, recent, limit),
-        Commands::Add {
+        }) => cmd_query(category, tags, search, recent, limit),
+        Some(Commands::Add {
             category,
             summary,
             detail,
             tags,
             plan_id,
             agent,
-        } => cmd_add(category, summary, detail, tags, plan_id, agent),
+        }) => cmd_add(category, summary, detail, tags, plan_id, agent),
+        Some(Commands::Ui { port }) => cmd_ui(port),
+        None => {
+            use clap::CommandFactory;
+            Cli::command().print_help().ok();
+            println!();
+            Ok(())
+        }
     }
 }
 
@@ -158,6 +179,20 @@ fn cmd_init() -> Result<()> {
     println!(
         "{}",
         serde_json::to_string(&json!({ "ok": true, "path": db_path.display().to_string() }))?
+    );
+    Ok(())
+}
+
+fn cmd_info() -> Result<()> {
+    let db_path = db_path();
+    let metadata = fs::metadata(&db_path).ok();
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&json!({
+            "db_path": db_path.display().to_string(),
+            "exists": db_path.exists(),
+            "size_bytes": metadata.as_ref().map(|m| m.len()).unwrap_or(0),
+        }))?
     );
     Ok(())
 }
@@ -262,6 +297,16 @@ fn cmd_add(
     Ok(())
 }
 
+fn cmd_ui(port: u16) -> Result<()> {
+    ui_server::start(ui_server::ServerConfig {
+        port,
+        session_db_path: None,
+        memory_db_path: Some(db_path()),
+        index_db_path: Some(project_index_db_path()),
+        open_browser: true,
+    })
+}
+
 fn init_db(db_path: &Path) -> Result<Connection> {
     if let Some(parent) = db_path.parent() {
         fs::create_dir_all(parent)
@@ -315,4 +360,14 @@ fn row_to_memory(row: &Row<'_>) -> rusqlite::Result<MemoryEntry> {
         plan_id: row.get("plan_id")?,
         agent: row.get("agent")?,
     })
+}
+
+fn project_index_db_path() -> PathBuf {
+    env::var("PROJECT_INDEX_DB")
+        .map(PathBuf::from)
+        .or_else(|_| env::var("AGENT_REPO_IDX_DB").map(PathBuf::from))
+        .unwrap_or_else(|_| {
+            let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            PathBuf::from(home).join(".local/state/opencode-custom-tools/repos.sqlite")
+        })
 }

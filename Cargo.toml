@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "crates/agent-memory", "crates/project-index", "crates/session-reader",
+  "crates/agent-memory", "crates/project-index", "crates/session-reader", "crates/ui-server",
 ]
 resolver = "2"
 

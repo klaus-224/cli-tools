@@ -111,8 +111,12 @@ const MAX_FILE_SIZE: u64 = 1_000_000;
 #[derive(Parser)]
 #[command(name = "project_index", about = "Unified repo tool - index, query, map, and search repositories.")]
 struct Cli {
+    /// Show the configured database location and exit
+    #[arg(long, global = true)]
+    info: bool,
+
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -137,6 +141,12 @@ enum Commands {
         #[arg(long)]
         repo: Option<String>,
     },
+    /// Launch the shared session viewer UI
+    Ui {
+        /// Port for the embedded UI server
+        #[arg(long, default_value_t = 5175)]
+        port: u16,
+    },
 }
 
 struct Chunk {
@@ -149,11 +159,22 @@ struct Chunk {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    if cli.info {
+        return cmd_info();
+    }
+
     match cli.command {
-        Commands::Index => cmd_index(),
-        Commands::Query { sql } => cmd_query(&sql),
-        Commands::Map => cmd_map(),
-        Commands::Search { query, limit, repo } => cmd_search(&query, limit, repo.as_deref()),
+        Some(Commands::Index) => cmd_index(),
+        Some(Commands::Query { sql }) => cmd_query(&sql),
+        Some(Commands::Map) => cmd_map(),
+        Some(Commands::Search { query, limit, repo }) => cmd_search(&query, limit, repo.as_deref()),
+        Some(Commands::Ui { port }) => cmd_ui(port),
+        None => {
+            use clap::CommandFactory;
+            Cli::command().print_help().ok();
+            println!();
+            Ok(())
+        }
     }
 }
 
@@ -349,6 +370,20 @@ fn cmd_index() -> Result<()> {
     Ok(())
 }
 
+fn cmd_info() -> Result<()> {
+    let dbp = db_path();
+    let metadata = fs::metadata(&dbp).ok();
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&json!({
+            "db_path": dbp.display().to_string(),
+            "exists": dbp.exists(),
+            "size_bytes": metadata.as_ref().map(|m| m.len()).unwrap_or(0),
+        }))?
+    );
+    Ok(())
+}
+
 fn cmd_query(sql: &str) -> Result<()> {
     let dbp = db_path();
     if !dbp.exists() {
@@ -444,6 +479,16 @@ fn cmd_search(query: &str, limit: usize, repo: Option<&str>) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn cmd_ui(port: u16) -> Result<()> {
+    ui_server::start(ui_server::ServerConfig {
+        port,
+        session_db_path: Some(session_db_path()),
+        memory_db_path: Some(memory_db_path()),
+        index_db_path: Some(db_path()),
+        open_browser: true,
+    })
 }
 
 fn cmd_map() -> Result<()> {
@@ -584,6 +629,20 @@ fn ensure_db_dir(p: &Path) -> Result<()> {
             .with_context(|| format!("failed to create {}", parent.display()))?;
     }
     Ok(())
+}
+
+fn session_db_path() -> PathBuf {
+    let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    PathBuf::from(home).join(".claude/projects/sessions.db")
+}
+
+fn memory_db_path() -> PathBuf {
+    env::var("AGENT_MEMORY_DB_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let home = env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            PathBuf::from(home).join(".local/state/agent-tools/memory.db")
+        })
 }
 
 fn is_ignored(path: &Path) -> bool {

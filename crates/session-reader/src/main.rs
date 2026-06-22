@@ -69,6 +69,11 @@ enum Commands {
         #[arg(long)]
         notes: Option<String>,
     },
+    Ui {
+        /// Port for the embedded UI server
+        #[arg(long, default_value_t = 5175)]
+        port: u16,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -121,6 +126,13 @@ fn run() -> Result<()> {
             list_flagged(pending_only, resolved_only)
         }
         Some(Commands::Resolve { session_id, notes }) => resolve_flagged(&session_id, notes),
+        Some(Commands::Ui { port }) => ui_server::start(ui_server::ServerConfig {
+            port,
+            session_db_path: get_db_path().ok(),
+            memory_db_path: Some(memory_db_path()),
+            index_db_path: Some(project_index_db_path()),
+            open_browser: true,
+        }),
         None => {
             Cli::command().print_help().ok();
             println!();
@@ -462,10 +474,6 @@ fn config_path() -> PathBuf {
     home_dir().join(".config/session_reader/config.json")
 }
 
-fn home_dir() -> PathBuf {
-    env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."))
-}
-
 fn expand_home(path: &str) -> PathBuf {
     if path == "~" {
         return home_dir();
@@ -474,6 +482,10 @@ fn expand_home(path: &str) -> PathBuf {
         return home_dir().join(rest);
     }
     PathBuf::from(path)
+}
+
+fn home_dir() -> PathBuf {
+    env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."))
 }
 
 struct Preset {
@@ -507,4 +519,17 @@ fn presets() -> Vec<Preset> {
             },
         },
     ]
+}
+
+fn memory_db_path() -> PathBuf {
+    env::var("AGENT_MEMORY_DB_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| home_dir().join(".local/state/agent-tools/memory.db"))
+}
+
+fn project_index_db_path() -> PathBuf {
+    env::var("PROJECT_INDEX_DB")
+        .map(PathBuf::from)
+        .or_else(|_| env::var("AGENT_REPO_IDX_DB").map(PathBuf::from))
+        .unwrap_or_else(|_| home_dir().join(".local/state/opencode-custom-tools/repos.sqlite"))
 }

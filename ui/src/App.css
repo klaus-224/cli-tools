@@ -1,9 +1,50 @@
-.app-shell {
+.app-frame {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 380px 1fr;
   background: #020617;
   color: #e5eefb;
+  padding: 20px;
+}
+
+.app-frame__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.app-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-nav__tab,
+.tab-strip__tab {
+  border: 1px solid #334155;
+  background: #111827;
+  color: #cbd5e1;
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.app-nav__tab--active,
+.tab-strip__tab--active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+}
+
+.app-shell,
+.view-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.app-shell {
+  grid-template-columns: 380px 1fr;
 }
 
 .sidebar,
@@ -63,6 +104,100 @@ h2 {
 .filters {
   display: grid;
   gap: 12px;
+}
+
+.view-header,
+.view-toolbar,
+.card,
+.row {
+  border: 1px solid #1e293b;
+  background: #0f172a;
+  border-radius: 16px;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.view-header__meta {
+  display: grid;
+  gap: 4px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.view-toolbar {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.view-toolbar--stacked {
+  gap: 14px;
+}
+
+.view-toolbar input,
+.view-toolbar select {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #f8fafc;
+}
+
+.tab-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.view-body {
+  display: grid;
+  gap: 12px;
+}
+
+.card,
+.row {
+  padding: 14px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card__header,
+.card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card__meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.card__pill,
+.tag {
+  border-radius: 999px;
+  background: #1e293b;
+  color: #cbd5e1;
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .filters label {
@@ -242,6 +377,19 @@ h2 {
 }
 
 @media (max-width: 960px) {
+  .app-frame__header,
+  .view-header,
+  .row,
+  .card__header,
+  .card__meta {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .app-frame {
+    padding: 14px;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
   }

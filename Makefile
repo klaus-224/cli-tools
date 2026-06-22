@@ -1,6 +1,12 @@
-.PHONY: build test smoke-agent-memory install-agent-memory smoke-project-index install-project-index smoke-session-reader install-session-reader
+.PHONY: build build-ui build-with-ui test smoke-agent-memory install-agent-memory smoke-project-index install-project-index smoke-session-reader install-session-reader
 
 build:
+	cargo build --release
+
+build-ui:
+	pnpm --dir ui/session-viewer build
+
+build-with-ui: build-ui
 	cargo build --release
 
 test:
@@ -31,4 +37,3 @@ smoke-agent-memory: build
 
 smoke-session-reader: build
 	target/release/session_reader --help
-
